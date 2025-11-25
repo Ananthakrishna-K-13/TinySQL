@@ -15,6 +15,7 @@
     </properties>
 
     <dependencies>
+        <!-- JUnit 5 (Jupiter) for Unit and Integration Testing -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -22,7 +23,8 @@
             <scope>test</scope>
         </dependency>
 
-            <dependency>
+        <!-- JQF Fuzzing Engine -->
+        <dependency>
             <groupId>edu.berkeley.cs.jqf</groupId>
             <artifactId>jqf-fuzz</artifactId>
             <version>2.1</version>
@@ -32,17 +34,26 @@
 
     <build>
         <plugins>
+            <!-- 1. Compiler Plugin: Ensures Java 17 compatibility -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
             </plugin>
 
+            <!-- 2. Surefire Plugin: Runs JUnit tests -->
             <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>3.2.5</version> </plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                <excludes>
+                    <exclude>com/tinysql/fuzz/*.java</exclude>
+                </excludes>
+            </configuration>
+            </plugin>
 
+            <!-- 3. Shade Plugin: Creates the Executable JAR (Fat JAR) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -64,10 +75,11 @@
                 </executions>
             </plugin>
 
+            <!-- 4. PITest Plugin: Mutation Testing -->
             <plugin>
                 <groupId>org.pitest</groupId>
                 <artifactId>pitest-maven</artifactId>
-                <version>1.14.1</version>
+                <version>1.15.0</version>
                 <dependencies>
                     <dependency>
                         <groupId>org.pitest</groupId>
@@ -76,22 +88,31 @@
                     </dependency>
                 </dependencies>
                 <configuration>
+                    <!-- Classes to Mutate (The Logic) -->
                     <targetClasses>
                         <param>com.tinysql.*</param>
                     </targetClasses>
+                    <!-- Tests to Run Against Mutants -->
                     <targetTests>
                         <param>com.tinysql.*</param>
                     </targetTests>
+                    <!-- Exclude Fuzz Tests from Mutation Analysis -->
                     <excludedTestClasses>
-                    <param>com.tinysql.fuzz.*</param>
-                </excludedTestClasses>
+                        <param>com.tinysql.fuzz.*</param>
+                        <param>com.tinysql.integration.IMCDMutantTest</param>
+                        <param>com.tinysql.integration.IPEXMutantTest</param>
+                        <param>com.tinysql.integration.IREMMutantTest</param>
+                    </excludedTestClasses>
+                    <!-- Report Formats -->
                     <outputFormats>
                         <outputFormat>HTML</outputFormat>
+                        <outputFormat>CSV</outputFormat> <!-- CSV includes Line Numbers explicitly -->
                     </outputFormats>
                     <timestampedReports>false</timestampedReports>
                 </configuration>
             </plugin>
 
+            <!-- 5. JQF Maven Plugin: Fuzz Testing -->
             <plugin>
                 <groupId>edu.berkeley.cs.jqf</groupId>
                 <artifactId>jqf-maven-plugin</artifactId>
@@ -99,4 +120,58 @@
             </plugin>
         </plugins>
     </build>
+
+    <!-- Optional Profile to run all fuzzers sequentially -->
+    <profiles>
+        <profile>
+            <id>fuzz-all</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>edu.berkeley.cs.jqf</groupId>
+                        <artifactId>jqf-maven-plugin</artifactId>
+                        <version>2.1</version>
+                        <executions>
+                            <execution>
+                                <id>fuzz-tokenizer</id>
+                                <phase>test</phase>
+                                <goals>
+                                    <goal>fuzz</goal>
+                                </goals>
+                                <configuration>
+                                    <class>com.tinysql.fuzz.TokenizerFuzz</class>
+                                    <method>fuzzTokenizer</method>
+                                    <time>1m</time>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>fuzz-aggregator</id>
+                                <phase>test</phase>
+                                <goals>
+                                    <goal>fuzz</goal>
+                                </goals>
+                                <configuration>
+                                    <class>com.tinysql.fuzz.AggregatorFuzz</class>
+                                    <method>fuzzAggregator</method>
+                                    <time>1m</time>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>fuzz-main</id>
+                                <phase>test</phase>
+                                <goals>
+                                    <goal>fuzz</goal>
+                                </goals>
+                                <configuration>
+                                    <class>com.tinysql.fuzz.MainFuzz</class>
+                                    <method>fuzzCLI</method>
+                                    <time>1m</time>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

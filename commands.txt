@@ -4,3 +4,6 @@ mutation testing                                    -> mvn org.pitest:pitest-mav
 fuzz tokenizer                                      -> mvn jqf:fuzz -Dclass=com.tinysql.fuzz.TokenizerFuzz -Dmethod=fuzzTokenizer -Dtime=30s
 fuzz Aggregator                                     -> mvn jqf:fuzz -Dclass=com.tinysql.fuzz.AggregatorFuzz -Dmethod=fuzzAggregator -Dtime=30s
 fuzz Main                                           -> mvn jqf:fuzz -Dclass=com.tinysql.fuzz.MainFuzz -Dmethod=fuzzCLI -Dtime=30s
+run specific integration tests                      -> mvn test -Dtest=com.tinysql.engine.IPEXMutantTest
+                                                        mvn test -Dtest=com.tinysql.engine.IMCDMutantTest
+                                                        mvn test -Dtest=com.tinysql.engine.IREMMutantTest

@@ -100,7 +100,7 @@ public class Executor {
     }
     
     // Helper to lazy load tables from disk if they aren't in memory
-    private Table getOrLoadTable(String name) {
+    public Table getOrLoadTable(String name) {
         Table t = db.getTable(name);
         if (t == null) {
             try {
