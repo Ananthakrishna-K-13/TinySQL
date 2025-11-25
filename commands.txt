@@ -1,0 +1,6 @@
+comile code + tests, test and get jar               -> mvn clean package
+before testing (mutation and fuzz) , do test comile -> mvn clean test-compile
+mutation testing                                    -> mvn org.pitest:pitest-maven:mutationCoverage
+fuzz tokenizer                                      -> mvn jqf:fuzz -Dclass=com.tinysql.fuzz.TokenizerFuzz -Dmethod=fuzzTokenizer -Dtime=30s
+fuzz Aggregator                                     -> mvn jqf:fuzz -Dclass=com.tinysql.fuzz.AggregatorFuzz -Dmethod=fuzzAggregator -Dtime=30s
+fuzz Main                                           -> mvn jqf:fuzz -Dclass=com.tinysql.fuzz.MainFuzz -Dmethod=fuzzCLI -Dtime=30s
